@@ -1,0 +1,52 @@
+#!/bin/bash -l
+# -----------------------------------------------------------------------------
+# Post-process predictions: ITN normalization -> DHF -> WER/CER tables.
+# CPU only.
+#
+# Submit FROM THE REPOSITORY ROOT:
+#   sbatch slurm/postprocess.slrm <predictions_dir>
+#
+# Example:
+#   sbatch slurm/postprocess.slrm outputs/moaa_linear_proj_A20/predictions
+# -----------------------------------------------------------------------------
+#SBATCH --job-name=moaa_post
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=04:00:00
+#SBATCH --output=logs/slurm/%x_%j.out
+
+set -euo pipefail
+
+PRED_DIR="${1:?usage: sbatch slurm/postprocess.slrm <predictions_dir>}"
+
+cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
+source configs/cluster_env.sh
+source configs/paths.sh
+
+shopt -s nullglob
+RAW=()
+for f in "${PRED_DIR}"/*.csv; do
+    case "$(basename "$f")" in *_itn.csv|*_dhf.csv|scores_*.csv) continue ;; esac
+    RAW+=("$f")
+done
+[ ${#RAW[@]} -gt 0 ] || { echo "No prediction CSVs in ${PRED_DIR}"; exit 1; }
+
+# 1) Raw scores
+python scripts/score.py "${RAW[@]}" --out_csv "${PRED_DIR}/scores_raw.csv"
+
+# 2) ITN normalization of hypotheses and references
+python scripts/itn_normalize.py "${RAW[@]}"
+
+ITN=()
+DHF=()
+for f in "${RAW[@]}"; do
+    ITN+=("${f%.csv}_itn.csv")
+    DHF+=("${f%.csv}_itn_dhf.csv")
+done
+
+# 3) DHF on the normalized hypotheses
+python scripts/apply_dhf.py "${ITN[@]}"
+
+# 4) Score tables
+python scripts/score.py "${ITN[@]}" --out_csv "${PRED_DIR}/scores_itn.csv"
+python scripts/score.py "${DHF[@]}" --hyp_col pred_text_dhf --out_csv "${PRED_DIR}/scores_itn_dhf.csv"

@@ -1,0 +1,41 @@
+#!/bin/bash -l
+# -----------------------------------------------------------------------------
+# Train + evaluate one MoAA model.
+#
+# Submit FROM THE REPOSITORY ROOT:
+#   sbatch slurm/train.slrm <variant> <num_adapters> [extra train.py flags]
+#
+#   variant: linear_proj | frozen | unfreeze_last2
+#
+# Examples (paper runs):
+#   sbatch slurm/train.slrm linear_proj 1
+#   sbatch slurm/train.slrm linear_proj 5
+#   sbatch slurm/train.slrm linear_proj 10
+#   sbatch slurm/train.slrm linear_proj 20
+#   sbatch slurm/train.slrm unfreeze_last2 1
+#   sbatch slurm/train.slrm unfreeze_last2 10
+# -----------------------------------------------------------------------------
+#SBATCH --job-name=moaa_train
+#SBATCH --partition=gpu-v100-32g
+#SBATCH --gres=gpu:v100:1
+#SBATCH --mem=64G
+#SBATCH --time=120:00:00
+#SBATCH --output=logs/slurm/%x_%j.out
+
+set -euo pipefail
+
+VARIANT="${1:-linear_proj}"
+NUM_ADAPTERS="${2:-10}"
+shift $(( $# >= 2 ? 2 : $# ))
+
+cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
+source configs/cluster_env.sh
+source configs/paths.sh
+
+echo "Host: $(hostname) | Job: ${SLURM_JOB_ID:-local} | variant=${VARIANT} adapters=${NUM_ADAPTERS}"
+nvidia-smi || true
+
+python scripts/train.py \
+    --variant "${VARIANT}" \
+    --num_adapters "${NUM_ADAPTERS}" \
+    "$@"

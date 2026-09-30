@@ -1,0 +1,27 @@
+name: moaa
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pynini=2.1.6          # required by nemo_text_processing (ITN)
+  - ffmpeg
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      - torch==2.5.0
+      - torchaudio==2.5.0
+      - transformers==4.44.2
+      - datasets==3.0.1
+      - evaluate==0.4.3
+      - accelerate==1.10.1
+      - jiwer==4.0.0
+      - librosa==0.10.2.post1
+      - soundfile==0.12.1
+      - numpy==1.26.4
+      - pandas==2.2.3
+      - safetensors==0.4.5
+      - tensorboard==2.19.0
+      - matplotlib==3.10.0
+      - tqdm==4.66.5
+      - nemo_text_processing==1.1.0

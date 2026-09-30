@@ -1,0 +1,32 @@
+#!/bin/bash -l
+# -----------------------------------------------------------------------------
+# Evaluate a trained MoAA checkpoint on the test sets (no training).
+#
+# Submit FROM THE REPOSITORY ROOT:
+#   sbatch slurm/evaluate.slrm <checkpoint_dir> <out_dir> [extra run_eval.py flags]
+#
+# Example (released A20 model):
+#   sbatch slurm/evaluate.slrm checkpoints/moaa_linear_proj_A20/checkpoint-101835 \
+#          outputs/eval_moaa_linear_proj_A20 --tests aesrc20h openslr edacc globe
+# -----------------------------------------------------------------------------
+#SBATCH --job-name=moaa_eval
+#SBATCH --partition=gpu-v100-32g
+#SBATCH --gres=gpu:v100:1
+#SBATCH --mem=64G
+#SBATCH --time=24:00:00
+#SBATCH --output=logs/slurm/%x_%j.out
+
+set -euo pipefail
+
+CKPT="${1:?usage: sbatch slurm/evaluate.slrm <checkpoint_dir> <out_dir> [flags]}"
+OUT="${2:?usage: sbatch slurm/evaluate.slrm <checkpoint_dir> <out_dir> [flags]}"
+shift 2
+
+cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
+source configs/cluster_env.sh
+source configs/paths.sh
+
+echo "Host: $(hostname) | Job: ${SLURM_JOB_ID:-local} | ckpt=${CKPT}"
+nvidia-smi || true
+
+python scripts/run_eval.py --checkpoint "${CKPT}" --out_dir "${OUT}" "$@"

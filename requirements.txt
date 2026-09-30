@@ -1,0 +1,20 @@
+# Versions used to train/evaluate the released MoAA checkpoints (Python 3.11).
+# Install PyTorch first for your CUDA version, e.g.:
+#   pip install torch==2.5.0 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cu124
+torch==2.5.0
+torchaudio==2.5.0
+transformers==4.44.2
+datasets==3.0.1
+evaluate==0.4.3
+accelerate==1.10.1
+jiwer==4.0.0
+librosa==0.10.2.post1
+soundfile==0.12.1
+numpy==1.26.4
+pandas==2.2.3
+safetensors==0.4.5
+tensorboard==2.19.0
+matplotlib==3.10.0
+tqdm==4.66.5
+# Text normalization (ITN) before scoring; needs pynini (install from conda-forge, see environment.yml)
+nemo_text_processing==1.1.0
