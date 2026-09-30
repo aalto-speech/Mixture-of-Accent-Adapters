@@ -1,4 +1,4 @@
-# MoAA: Mixture of Accent Adapters for Accent-Robust Whisper ASR
+# Mixture-of-Accent-Adapters for Robust ASR: Injecting Accent Cues into Pretrained Whisper 
 
 Official code, checkpoints and outputs for **MoAA** (Mixture of Accent Adapters) and
 **DHF** (Deterministic Hallucination Filter).
